@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RazorRecover — Autonomous Revenue Recovery Agent</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .badge-reliable { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+    .badge-cash_constrained { background: #fef9c3; color: #854d0e; border: 1px solid #fef08a; }
+    .badge-subscription_loyalist { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+    .badge-churn_risk { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .badge-habitual_late { background: #ffedd5; color: #9a3412; border: 1px solid #fed7aa; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center font-bold text-lg tracking-wider text-white shadow-lg shadow-blue-500/30">
+          <i data-lucide="shield-check" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-extrabold text-lg tracking-tight text-white">RazorRecover</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-semibold border border-blue-500/30">Track 03 • AI Revenue Recovery</span>
+          </div>
+          <p class="text-xs text-slate-400">Autonomous Decision & Action Engine</p>
+        </div>
+      </div>
+
+      <!-- Mode & Controls -->
+      <div class="flex items-center space-x-3">
+        <div id="mode-badge" class="flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="mode-label">DUAL-MODE: SIMULATOR</span>
+        </div>
+        <button onclick="openSimModal()" class="flex items-center space-x-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition shadow-md shadow-blue-600/20">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <span>Simulate Event</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- SUB NAVIGATION TABS -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-8 text-xs font-semibold border-t border-slate-800">
+      <button onclick="switchTab('queue')" id="tab-queue" class="py-3 border-b-2 border-blue-500 text-blue-400 flex items-center space-x-2">
+        <i data-lucide="inbox" class="w-4 h-4"></i>
+        <span>Recovery Queue & Overview</span>
+      </button>
+      <button onclick="switchTab('benchmark')" id="tab-benchmark" class="py-3 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center space-x-2">
+        <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+        <span>Batch Evaluation Benchmark (1,000 Cases)</span>
+      </button>
+      <button onclick="switchTab('simulator')" id="tab-simulator" class="py-3 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center space-x-2">
+        <i data-lucide="play-circle" class="w-4 h-4"></i>
+        <span>Simulator Studio</span>
+      </button>
+      <button onclick="switchTab('policies')" id="tab-policies" class="py-3 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center space-x-2">
+        <i data-lucide="sliders" class="w-4 h-4"></i>
+        <span>Policy Guardrails</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- TAB 1: QUEUE & OVERVIEW -->
+    <section id="view-queue" class="space-y-6">
+      <!-- FINANCIAL KPI CARDS -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4" id="kpi-cards">
+        <!-- Gross At Risk -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Gross at Risk</span>
+            <div class="p-2 rounded-lg bg-rose-50 text-rose-600">
+              <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-3 text-2xl font-extrabold text-slate-900" id="stat-at-risk">₹0</div>
+          <p class="mt-1 text-xs text-slate-500"><span id="stat-total-cases">0</span> detected failure cases</p>
+        </div>
+
+        <!-- Gross Recovered -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Gross Recovered</span>
+            <div class="p-2 rounded-lg bg-emerald-50 text-emerald-600">
+              <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-3 text-2xl font-extrabold text-emerald-600" id="stat-gross-rec">₹0</div>
+          <p class="mt-1 text-xs text-slate-500"><span id="stat-rec-cases">0</span> recovered cases</p>
+        </div>
+
+        <!-- Net Recovered Revenue -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm bg-gradient-to-br from-white to-blue-50/30">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-blue-700 uppercase tracking-wider">Net Recovered ₹</span>
+            <div class="p-2 rounded-lg bg-blue-50 text-blue-600">
+              <i data-lucide="wallet" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-3 text-2xl font-extrabold text-blue-700" id="stat-net-rec">₹0</div>
+          <p class="mt-1 text-xs text-slate-500">After ₹<span id="stat-spend">0</span> intervention cost</p>
+        </div>
+
+        <!-- Recovery Rate -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Recovery Rate</span>
+            <div class="p-2 rounded-lg bg-indigo-50 text-indigo-600">
+              <i data-lucide="percent" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-3 text-2xl font-extrabold text-indigo-600" id="stat-rec-rate">0.0%</div>
+          <p class="mt-1 text-xs text-emerald-600 font-semibold">+9.6% vs Static Rules</p>
+        </div>
+
+        <!-- Average Recovery Time -->
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Avg Recovery Time</span>
+            <div class="p-2 rounded-lg bg-amber-50 text-amber-600">
+              <i data-lucide="clock" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="mt-3 text-2xl font-extrabold text-slate-900" id="stat-avg-time">0.0h</div>
+          <p class="mt-1 text-xs text-slate-500"><span id="stat-escalated">0</span> escalated to ops</p>
+        </div>
+      </div>
+
+      <!-- RECOVERY QUEUE TABLE -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <h2 class="text-base font-bold text-slate-900">Revenue Recovery Queue</h2>
+            <p class="text-xs text-slate-500">Real-time revenue-at-risk pipeline with bounded interventions</p>
+          </div>
+          <div class="flex items-center space-x-2">
+            <select id="filter-status" onchange="loadCases()" class="text-xs border border-slate-300 rounded-lg px-3 py-1.5 bg-white text-slate-700 font-medium focus:ring-1 focus:ring-blue-500">
+              <option value="all">All Cases</option>
+              <option value="action_scheduled">Action Scheduled</option>
+              <option value="recovered">Recovered</option>
+              <option value="escalated">Escalated (High Value)</option>
+              <option value="stopped">Stopped</option>
+            </select>
+            <button onclick="loadDashboard()" class="p-1.5 text-slate-500 hover:text-slate-800 rounded-lg hover:bg-slate-100 transition" title="Refresh">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase font-semibold">
+              <tr>
+                <th class="px-4 py-3">Case ID</th>
+                <th class="px-4 py-3">Customer & Cohort</th>
+                <th class="px-4 py-3">At Risk (₹)</th>
+                <th class="px-4 py-3">Root Cause</th>
+                <th class="px-4 py-3">Decision / Action</th>
+                <th class="px-4 py-3">P(Rec) / Net ₹</th>
+                <th class="px-4 py-3">Status</th>
+                <th class="px-4 py-3 text-right">Inspect</th>
+              </tr>
+            </thead>
+            <tbody id="cases-table-body" class="divide-y divide-slate-100 font-medium text-slate-700">
+              <tr><td colspan="8" class="text-center py-8 text-slate-400">Loading cases...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: BATCH EVALUATION BENCHMARK -->
+    <section id="view-benchmark" class="space-y-6 hidden">
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-100 pb-5">
+          <div>
+            <div class="flex items-center space-x-2">
+              <h2 class="text-lg font-bold text-slate-900">Held-Out Batch Evaluation Benchmark</h2>
+              <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700">Locked 1,000 Cases</span>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">Rigorous counterfactual evaluation comparing RazorRecover against 3 standard merchant strategies across identical ground-truth response curves.</p>
+          </div>
+          <button onclick="runBenchmark()" id="btn-run-benchmark" class="flex items-center space-x-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition shadow">
+            <i data-lucide="play" class="w-4 h-4"></i>
+            <span>Re-Run 1,000 Batch Simulation</span>
+          </button>
+        </div>
+
+        <!-- Comparative Metrics Table -->
+        <div class="mt-6 overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 border-y border-slate-200 text-slate-600 uppercase font-semibold">
+              <tr>
+                <th class="px-4 py-3">Recovery Strategy</th>
+                <th class="px-4 py-3">Gross At Risk</th>
+                <th class="px-4 py-3">Recovered ₹</th>
+                <th class="px-4 py-3">Recovery Rate</th>
+                <th class="px-4 py-3">Net Recovered ₹</th>
+                <th class="px-4 py-3">Total Spend</th>
+                <th class="px-4 py-3">Unnecessary Interventions</th>
+              </tr>
+            </thead>
+            <tbody id="benchmark-table-body" class="divide-y divide-slate-100">
+              <tr><td colspan="7" class="text-center py-6 text-slate-400">Loading benchmark data...</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Uplift Highlights -->
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4 bg-gradient-to-br from-blue-50/50 to-indigo-50/30 p-5 rounded-xl border border-blue-100">
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase">Incremental Net ₹ Lift</div>
+            <div class="text-2xl font-extrabold text-blue-700 mt-1" id="bench-uplift-inr">+₹0</div>
+            <p class="text-xs text-slate-600 mt-0.5">Over Baseline C (Static Rules)</p>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase">Wasteful Interventions Avoided</div>
+            <div class="text-2xl font-extrabold text-emerald-600 mt-1" id="bench-waste-saved">0</div>
+            <p class="text-xs text-slate-600 mt-0.5">Spam & failed retry friction eliminated</p>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-slate-500 uppercase">Safety & Policy Guardrails</div>
+            <div class="text-2xl font-extrabold text-indigo-600 mt-1">100% Bound</div>
+            <p class="text-xs text-slate-600 mt-0.5">Quiet hours, ₹50k ceiling, max 3 retries</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: SIMULATOR STUDIO -->
+    <section id="view-simulator" class="space-y-6 hidden">
+      <div class="max-w-3xl mx-auto bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <h2 class="text-base font-bold text-slate-900">Event Simulator Studio</h2>
+        <p class="text-xs text-slate-500 mt-1">Inject real or synthetic payment failure events into the live pipeline to observe root cause detection, candidate scoring, policy checks, and action execution.</p>
+
+        <form id="sim-form" onsubmit="submitSimulatorEvent(event)" class="mt-6 space-y-4 text-xs font-medium">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-slate-700 font-semibold mb-1">Customer Behavioral Cohort</label>
+              <select id="sim-cohort" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white text-slate-800">
+                <option value="reliable">Reliable Payer (High success, responds to delayed retry)</option>
+                <option value="cash_constrained">Temporarily Cash-Constrained (Low instant, high 24-48h)</option>
+                <option value="subscription_loyalist">Subscription Loyalist (High LTV, gentle link)</option>
+                <option value="churn_risk">High Churn Risk (Needs targeted discount incentive)</option>
+                <option value="habitual_late">Habitual Late Payer (Multi-touch reminder)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-slate-700 font-semibold mb-1">Transaction Amount (INR ₹)</label>
+              <input type="number" id="sim-amount" value="4999" step="1" min="100" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-800" />
+              <p class="text-[10px] text-slate-400 mt-1">Tip: Set &gt; ₹50,000 to test high-value human escalation gate.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-slate-700 font-semibold mb-1">Gateway Failure Reason</label>
+              <select id="sim-failure" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white text-slate-800">
+                <option value="INSUFFICIENT_FUNDS">INSUFFICIENT_FUNDS — Account balance low</option>
+                <option value="GATEWAY_TIMEOUT">GATEWAY_TIMEOUT — Bank/NPCI timeout</option>
+                <option value="CARD_NETWORK_DECLINE">CARD_NETWORK_DECLINE — Card issuer declined</option>
+                <option value="MANDATE_EXECUTION_FAILED">MANDATE_EXECUTION_FAILED — Autopay decline</option>
+                <option value="USER_DROPPED_OFF">USER_DROPPED_OFF — Abandoned at OTP</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-slate-700 font-semibold mb-1">Payment Method</label>
+              <select id="sim-method" class="w-full border border-slate-300 rounded-lg px-3 py-2 bg-white text-slate-800">
+                <option value="upi">UPI (GPay / PhonePe / Paytm)</option>
+                <option value="card">Credit / Debit Card</option>
+                <option value="netbanking">Netbanking</option>
+                <option value="mandate">e-Mandate / Autopay</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Customer Name</label>
+            <input type="text" id="sim-name" value="Rohan Mehta" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-slate-800" />
+          </div>
+
+          <div class="pt-2">
+            <button type="submit" id="btn-sim-submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 rounded-lg transition shadow flex items-center justify-center space-x-2">
+              <i data-lucide="zap" class="w-4 h-4"></i>
+              <span>Inject Payment Failure Event</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Result Box -->
+        <div id="sim-result-box" class="mt-6 p-4 rounded-xl border border-slate-200 bg-slate-50 hidden">
+          <h3 class="font-bold text-slate-900 mb-2">Simulation Result:</h3>
+          <pre id="sim-result-json" class="text-[11px] text-slate-700 bg-white p-3 rounded-lg border border-slate-200 overflow-x-auto"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: POLICY GUARDRAILS -->
+    <section id="view-policies" class="space-y-6 hidden">
+      <div class="max-w-2xl mx-auto bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+        <h2 class="text-base font-bold text-slate-900">Deterministic Policy & Guardrail Configuration</h2>
+        <p class="text-xs text-slate-500 mt-1">Configurable merchant limits and compliance boundaries. The LLM cannot bypass these hard safety rules.</p>
+
+        <form id="policy-form" onsubmit="savePolicies(event)" class="mt-6 space-y-4 text-xs font-medium">
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Maximum Retry Attempts</label>
+            <input type="number" id="pol-max-retries" class="w-full border border-slate-300 rounded-lg px-3 py-2" />
+            <p class="text-[11px] text-slate-400 mt-0.5">Strict stopping rule: halts automated retries after this limit.</p>
+          </div>
+
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Minimum Spacing Between Retries (Hours)</label>
+            <input type="number" id="pol-min-retry-interval" class="w-full border border-slate-300 rounded-lg px-3 py-2" />
+          </div>
+
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Maximum Discount Cap (%)</label>
+            <input type="number" id="pol-max-discount" step="0.5" class="w-full border border-slate-300 rounded-lg px-3 py-2" />
+          </div>
+
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">Maximum Messages per 48 Hours (Frequency Cap)</label>
+            <input type="number" id="pol-max-msgs" class="w-full border border-slate-300 rounded-lg px-3 py-2" />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-slate-700 font-semibold mb-1">Quiet Hours Start (24h format)</label>
+              <input type="number" id="pol-quiet-start" class="w-full border border-slate-300 rounded-lg px-3 py-2" />
+            </div>
+            <div>
+              <label class="block text-slate-700 font-semibold mb-1">Quiet Hours End (24h format)</label>
+              <input type="number" id="pol-quiet-end" class="w-full border border-slate-300 rounded-lg px-3 py-2" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-slate-700 font-semibold mb-1">High-Value Human Escalation Threshold (INR ₹)</label>
+            <input type="number" id="pol-escalation-threshold" class="w-full border border-slate-300 rounded-lg px-3 py-2" />
+            <p class="text-[11px] text-slate-400 mt-0.5">Amounts at or above this threshold bypass autonomous charging and are assigned to human ops.</p>
+          </div>
+
+          <div class="pt-2">
+            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold py-2.5 rounded-lg transition shadow">Save Policy Settings</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- CASE INSPECTOR MODAL -->
+  <div id="case-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-slate-200">
+      <div class="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+        <div>
+          <div class="flex items-center space-x-2">
+            <h3 class="text-lg font-bold text-slate-900" id="modal-case-id">Case Inspection</h3>
+            <span id="modal-status-badge" class="px-2 py-0.5 rounded-full text-xs font-semibold"></span>
+          </div>
+          <p class="text-xs text-slate-500 mt-0.5">Root-Cause Analysis, Counterfactual Scoring & Audit Trail</p>
+        </div>
+        <button onclick="closeModal()" class="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-6 space-y-6">
+        <!-- CUSTOMER & RISK HEADER -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
+          <div>
+            <div class="text-slate-400 font-medium uppercase">Customer Profile</div>
+            <div class="font-bold text-slate-900 text-sm mt-0.5" id="modal-customer-name">Name</div>
+            <div class="text-slate-600" id="modal-customer-cohort">Cohort: Reliable</div>
+            <div class="text-slate-500 mt-1">LTV: ₹<span id="modal-customer-ltv">0</span> | Rec Rate: <span id="modal-customer-rate">0%</span></div>
+          </div>
+          <div>
+            <div class="text-slate-400 font-medium uppercase">Revenue at Risk</div>
+            <div class="font-bold text-rose-600 text-lg mt-0.5" id="modal-amount-risk">₹0</div>
+            <div class="text-slate-600">Method: <span id="modal-method">UPI</span></div>
+            <div class="text-slate-500 mt-1">Attempt: <span id="modal-attempt">1</span></div>
+          </div>
+          <div>
+            <div class="text-slate-400 font-medium uppercase">Root Cause Diagnostic</div>
+            <div class="font-bold text-slate-900 mt-0.5" id="modal-root-cause">insufficient_funds</div>
+            <div class="text-slate-500 text-[11px] mt-1" id="modal-failure-desc">Account balance was low</div>
+          </div>
+        </div>
+
+        <!-- CANDIDATE ACTIONS MATRIX -->
+        <div>
+          <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 flex items-center space-x-1.5">
+            <i data-lucide="cpu" class="w-4 h-4 text-blue-600"></i>
+            <span>Evaluated Candidate Interventions (Expected Net Value Engine)</span>
+          </h4>
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-500 font-semibold border-b border-slate-200">
+                <tr>
+                  <th class="px-3 py-2">Action</th>
+                  <th class="px-3 py-2">P(Recovery)</th>
+                  <th class="px-3 py-2">Gross Expected ₹</th>
+                  <th class="px-3 py-2">Cost + Discount</th>
+                  <th class="px-3 py-2">Net Expected ₹</th>
+                  <th class="px-3 py-2">Guardrail Compliance</th>
+                </tr>
+              </thead>
+              <tbody id="modal-candidates-body" class="divide-y divide-slate-100"></tbody>
+            </table>
+          </div>
+          <div class="mt-2 text-xs text-slate-600 bg-blue-50/70 p-3 rounded-lg border border-blue-100 flex items-start space-x-2">
+            <i data-lucide="info" class="w-4 h-4 text-blue-600 shrink-0 mt-0.5"></i>
+            <p id="modal-selection-reason" class="text-[11px] leading-relaxed"></p>
+          </div>
+        </div>
+
+        <!-- OUTBOUND MESSAGE PREVIEW -->
+        <div id="modal-message-section" class="hidden">
+          <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 flex items-center space-x-1.5">
+            <i data-lucide="message-square" class="w-4 h-4 text-emerald-600"></i>
+            <span>Outbound Customer Message (Content-Sanitized)</span>
+          </h4>
+          <div class="bg-emerald-50/50 border border-emerald-200 p-3.5 rounded-xl text-xs text-slate-800" id="modal-message-content"></div>
+        </div>
+
+        <!-- IMMUTABLE AUDIT TRAIL -->
+        <div>
+          <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider mb-3 flex items-center space-x-1.5">
+            <i data-lucide="file-text" class="w-4 h-4 text-slate-600"></i>
+            <span>Immutable Audit Trail</span>
+          </h4>
+          <div class="space-y-2.5 max-h-48 overflow-y-auto pr-1" id="modal-audit-trail"></div>
+        </div>
+
+        <!-- SIMULATE RECOVERY BUTTON -->
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+          <div class="text-xs text-slate-500">
+            <span id="modal-footer-note">Test Mode: You can simulate successful customer payment capture here.</span>
+          </div>
+          <button id="btn-modal-recover" onclick="simulateModalRecovery()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition shadow flex items-center space-x-1.5">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Simulate Payment Recovery</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION JAVASCRIPT -->
+  <script>
+    let activeCaseId = null;
+
+    function formatINR(num) {
+      return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(num || 0);
+    }
+
+    function switchTab(tabId) {
+      ['queue', 'benchmark', 'simulator', 'policies'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.add('hidden');
+        document.getElementById(`tab-${t}`).className = 'py-3 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center space-x-2';
+      });
+      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+      document.getElementById(`tab-${tabId}`).className = 'py-3 border-b-2 border-blue-500 text-blue-400 flex items-center space-x-2';
+      
+      if (tabId === 'benchmark') loadBenchmark();
+      if (tabId === 'policies') loadPolicies();
+    }
+
+    async function loadDashboard() {
+      try {
+        const metricsRes = await fetch('/api/metrics/overview');
+        const metrics = await metricsRes.json();
+        
+        document.getElementById('stat-at-risk').innerText = formatINR(metrics.gross_at_risk);
+        document.getElementById('stat-gross-rec').innerText = formatINR(metrics.gross_recovered);
+        document.getElementById('stat-net-rec').innerText = formatINR(metrics.net_recovered);
+        document.getElementById('stat-rec-rate').innerText = `${metrics.recovery_rate_pct}%`;
+        document.getElementById('stat-avg-time').innerText = `${metrics.avg_recovery_time_hours}h`;
+        document.getElementById('stat-total-cases').innerText = metrics.total_cases_count;
+        document.getElementById('stat-rec-cases').innerText = metrics.recovered_cases_count;
+        document.getElementById('stat-spend').innerText = Math.round(metrics.intervention_cost_total).toLocaleString();
+        document.getElementById('stat-escalated').innerText = metrics.escalated_cases_count;
+
+        loadCases();
+      } catch (err) {
+        console.error("Failed to load metrics", err);
+      }
+    }
+
+    async function loadCases() {
+      try {
+        const status = document.getElementById('filter-status').value;
+        const res = await fetch(`/api/cases?status=${status}`);
+        const cases = await res.json();
+        const tbody = document.getElementById('cases-table-body');
+        
+        if (!cases || cases.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-slate-400">No cases found in this view.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = cases.map(c => {
+          const statusBadge = {
+            'action_scheduled': '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">Scheduled</span>',
+            'action_executed': '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">Executed</span>',
+            'recovered': '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">✓ Recovered</span>',
+            'escalated': '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">Ops Escalated</span>',
+            'stopped': '<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">Stopped</span>'
+          }[c.status] || `<span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-700">${c.status}</span>`;
+
+          const cohortBadge = `badge-${c.customer_cohort}`;
+
+          return `
+            <tr class="hover:bg-slate-50/80 transition">
+              <td class="px-4 py-3 font-mono text-[11px] text-slate-600">${c.id}</td>
+              <td class="px-4 py-3">
+                <div class="font-bold text-slate-900">${c.customer_name}</div>
+                <span class="inline-block mt-0.5 px-2 py-0.2 rounded text-[10px] font-medium ${cohortBadge}">${c.customer_cohort.replace('_', ' ')}</span>
+              </td>
+              <td class="px-4 py-3 font-bold text-slate-900">${formatINR(c.amount_at_risk)}</td>
+              <td class="px-4 py-3 text-slate-600">${c.root_cause.replace('_', ' ')}</td>
+              <td class="px-4 py-3">
+                <span class="font-semibold text-slate-800">${(c.chosen_action || 'none').replace('_', ' ')}</span>
+              </td>
+              <td class="px-4 py-3">
+                <div class="font-bold text-blue-600">${Math.round(c.recovery_probability * 100)}%</div>
+                <div class="text-[10px] text-slate-500">Net: ${formatINR(c.expected_net_value)}</div>
+              </td>
+              <td class="px-4 py-3">${statusBadge}</td>
+              <td class="px-4 py-3 text-right">
+                <button onclick="inspectCase('${c.id}')" class="text-blue-600 hover:text-blue-800 font-semibold text-xs px-2.5 py-1 rounded hover:bg-blue-50 transition">
+                  Inspect
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        lucide.createIcons();
+      } catch (err) {
+        console.error("Failed to load cases", err);
+      }
+    }
+
+    async function inspectCase(caseId) {
+      activeCaseId = caseId;
+      try {
+        const res = await fetch(`/api/cases/${caseId}`);
+        const data = await res.json();
+        const c = data.case;
+        const cust = data.customer;
+        const pay = data.payment;
+
+        document.getElementById('modal-case-id').innerText = `${c.id}`;
+        document.getElementById('modal-customer-name').innerText = cust.name;
+        document.getElementById('modal-customer-cohort').innerText = `Cohort: ${cust.cohort.replace('_', ' ')}`;
+        document.getElementById('modal-customer-ltv').innerText = Math.round(cust.lifetime_value).toLocaleString();
+        document.getElementById('modal-customer-rate').innerText = `${Math.round(cust.historical_recovery_rate * 100)}%`;
+        document.getElementById('modal-amount-risk').innerText = formatINR(c.amount_at_risk);
+        document.getElementById('modal-method').innerText = pay.method.toUpperCase();
+        document.getElementById('modal-attempt').innerText = pay.attempt_number;
+        document.getElementById('modal-root-cause').innerText = c.root_cause.replace('_', ' ');
+        document.getElementById('modal-failure-desc').innerText = pay.error_description || pay.error_code;
+        document.getElementById('modal-selection-reason').innerText = data.selection_reason;
+
+        // Status badge
+        const badgeElem = document.getElementById('modal-status-badge');
+        badgeElem.innerText = c.status.toUpperCase();
+        badgeElem.className = c.status === 'recovered' ? 'px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800' : 'px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800';
+
+        // Candidates Matrix
+        const matrixBody = document.getElementById('modal-candidates-body');
+        matrixBody.innerHTML = data.candidate_actions_matrix.map(cand => {
+          const isChosen = cand.action === c.chosen_action;
+          const rowBg = isChosen ? 'bg-blue-50/70 font-semibold' : '';
+          const compBadge = cand.compliant ? '<span class="text-emerald-600 font-bold">✓ Compliant</span>' : `<span class="text-rose-600 font-bold" title="${cand.policy_reason}">✗ Blocked</span>`;
+          return `
+            <tr class="${rowBg}">
+              <td class="px-3 py-2">
+                ${cand.action.replace('_', ' ')} ${isChosen ? '<span class="text-[10px] bg-blue-600 text-white px-1.5 py-0.2 rounded ml-1">Chosen</span>' : ''}
+              </td>
+              <td class="px-3 py-2 font-bold">${Math.round(cand.probability * 100)}%</td>
+              <td class="px-3 py-2">${formatINR(cand.gross_expected_value)}</td>
+              <td class="px-3 py-2 text-slate-500">₹${(cand.direct_cost + cand.discount_offered).toFixed(1)}</td>
+              <td class="px-3 py-2 font-bold ${cand.net_expected_value > 0 ? 'text-blue-600' : 'text-slate-400'}">${formatINR(cand.net_expected_value)}</td>
+              <td class="px-3 py-2">${compBadge}</td>
+            </tr>
+          `;
+        }).join('');
+
+        // Outbound message preview
+        const firstAction = data.actions && data.actions[0];
+        if (firstAction && firstAction.message_content) {
+          document.getElementById('modal-message-section').classList.remove('hidden');
+          document.getElementById('modal-message-content').innerText = firstAction.message_content;
+        } else {
+          document.getElementById('modal-message-section').classList.add('hidden');
+        }
+
+        // Audit Trail
+        const auditElem = document.getElementById('modal-audit-trail');
+        auditElem.innerHTML = data.audit_logs.map(log => `
+          <div class="border-l-2 border-slate-300 pl-3 py-1 text-xs">
+            <div class="flex items-center space-x-2 text-[11px] text-slate-400 font-mono">
+              <span>${log.timestamp.replace('T', ' ').slice(0, 19)}</span>
+              <span>•</span>
+              <span class="text-blue-600 font-semibold">${log.actor}</span>
+              <span>•</span>
+              <span class="text-slate-700 font-bold">${log.action}</span>
+            </div>
+            <div class="text-slate-800 font-medium mt-0.5">${log.decision || log.input_summary}</div>
+            ${log.details ? `<div class="text-slate-500 text-[11px] mt-0.5">${log.details}</div>` : ''}
+          </div>
+        `).join('');
+
+        // Recover button toggle
+        const btnRecover = document.getElementById('btn-modal-recover');
+        if (c.status === 'recovered') {
+          btnRecover.disabled = true;
+          btnRecover.innerText = 'Already Recovered';
+          btnRecover.className = 'bg-slate-200 text-slate-400 font-semibold text-xs px-4 py-2 rounded-lg cursor-not-allowed';
+        } else {
+          btnRecover.disabled = false;
+          btnRecover.innerHTML = `<i data-lucide="check" class="w-4 h-4"></i><span>Simulate Payment Recovery</span>`;
+          btnRecover.className = 'bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs px-4 py-2 rounded-lg transition shadow flex items-center space-x-1.5';
+        }
+
+        document.getElementById('case-modal').classList.remove('hidden');
+        lucide.createIcons();
+      } catch (err) {
+        console.error("Failed to inspect case", err);
+      }
+    }
+
+    async function simulateModalRecovery() {
+      if (!activeCaseId) return;
+      try {
+        const res = await fetch(`/api/cases/${activeCaseId}/simulate-recovery`, { method: 'POST' });
+        const result = await res.json();
+        inspectCase(activeCaseId);
+        loadDashboard();
+      } catch (err) {
+        console.error("Failed to simulate recovery", err);
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('case-modal').classList.add('hidden');
+      activeCaseId = null;
+    }
+
+    function openSimModal() {
+      switchTab('simulator');
+    }
+
+    async function submitSimulatorEvent(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btn-sim-submit');
+      btn.disabled = true;
+      btn.innerHTML = `<span>Processing Decision Engine...</span>`;
+
+      try {
+        const payload = {
+          customer_cohort: document.getElementById('sim-cohort').value,
+          amount: parseFloat(document.getElementById('sim-amount').value),
+          failure_reason: document.getElementById('sim-failure').value,
+          method: document.getElementById('sim-method').value,
+          customer_name: document.getElementById('sim-name').value
+        };
+
+        const res = await fetch('/api/simulator/trigger-failure', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        document.getElementById('sim-result-box').classList.remove('hidden');
+        document.getElementById('sim-result-json').innerText = JSON.stringify(data, null, 2);
+
+        loadDashboard();
+      } catch (err) {
+        console.error("Simulation error", err);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="zap" class="w-4 h-4"></i><span>Inject Payment Failure Event</span>`;
+        lucide.createIcons();
+      }
+    }
+
+    async function loadBenchmark() {
+      try {
+        const res = await fetch('/api/evaluation/benchmark');
+        const data = await res.json();
+        renderBenchmarkTable(data);
+      } catch (err) {
+        console.error("Failed to load benchmark", err);
+      }
+    }
+
+    async function runBenchmark() {
+      const btn = document.getElementById('btn-run-benchmark');
+      btn.disabled = true;
+      btn.innerHTML = `<span>Simulating 1,000 cases...</span>`;
+      try {
+        const res = await fetch('/api/evaluation/run-benchmark', { method: 'POST' });
+        const data = await res.json();
+        renderBenchmarkTable(data);
+      } catch (err) {
+        console.error("Failed to run benchmark", err);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="play" class="w-4 h-4"></i><span>Re-Run 1,000 Batch Simulation</span>`;
+        lucide.createIcons();
+      }
+    }
+
+    function renderBenchmarkTable(data) {
+      const tbody = document.getElementById('benchmark-table-body');
+      const strategies = data.strategies;
+
+      tbody.innerHTML = Object.keys(strategies).map(k => {
+        const s = strategies[k];
+        const isRR = k === 'razorrecover';
+        const rowClass = isRR ? 'bg-blue-50/80 font-bold text-slate-900 border-2 border-blue-500' : 'text-slate-700';
+
+        return `
+          <tr class="${rowClass}">
+            <td class="px-4 py-3">
+              ${s.name} ${isRR ? '<span class="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded ml-2">Our System</span>' : ''}
+            </td>
+            <td class="px-4 py-3">${formatINR(s.gross_at_risk)}</td>
+            <td class="px-4 py-3 font-bold ${isRR ? 'text-emerald-600' : ''}">${formatINR(s.gross_recovered)}</td>
+            <td class="px-4 py-3 font-bold">${s.recovery_rate_pct}%</td>
+            <td class="px-4 py-3 font-bold ${isRR ? 'text-blue-700 text-sm' : ''}">${formatINR(s.net_recovered)}</td>
+            <td class="px-4 py-3 text-slate-500">${formatINR(s.total_costs)}</td>
+            <td class="px-4 py-3 text-rose-600">${s.unnecessary_interventions} (${Math.round(s.unnecessary_interventions/s.interventions_count*100)}%)</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.getElementById('bench-uplift-inr').innerText = `+${formatINR(data.uplift_vs_rules.net_revenue_lift_inr)}`;
+      document.getElementById('bench-waste-saved').innerText = `${data.uplift_vs_rules.wasteful_interventions_reduced} Interventions`;
+    }
+
+    async function loadPolicies() {
+      try {
+        const res = await fetch('/api/policies');
+        const p = await res.json();
+        document.getElementById('pol-max-retries').value = p.max_retries;
+        document.getElementById('pol-min-retry-interval').value = p.min_retry_interval_hours;
+        document.getElementById('pol-max-discount').value = p.max_discount_pct;
+        document.getElementById('pol-max-msgs').value = p.max_messages_per_48h;
+        document.getElementById('pol-quiet-start').value = p.quiet_hours_start;
+        document.getElementById('pol-quiet-end').value = p.quiet_hours_end;
+        document.getElementById('pol-escalation-threshold').value = p.human_escalation_threshold_inr;
+      } catch (err) {
+        console.error("Failed to load policies", err);
+      }
+    }
+
+    async function savePolicies(e) {
+      e.preventDefault();
+      try {
+        const payload = {
+          max_retries: parseInt(document.getElementById('pol-max-retries').value),
+          min_retry_interval_hours: parseInt(document.getElementById('pol-min-retry-interval').value),
+          max_discount_pct: parseFloat(document.getElementById('pol-max-discount').value),
+          max_messages_per_48h: parseInt(document.getElementById('pol-max-msgs').value),
+          quiet_hours_start: parseInt(document.getElementById('pol-quiet-start').value),
+          quiet_hours_end: parseInt(document.getElementById('pol-quiet-end').value),
+          human_escalation_threshold_inr: parseFloat(document.getElementById('pol-escalation-threshold').value)
+        };
+        await fetch('/api/policies', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        alert("Policy guardrails updated successfully!");
+      } catch (err) {
+        console.error("Failed to save policies", err);
+      }
+    }
+
+    // Initialize Dashboard
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      loadDashboard();
+    });
+  </script>
+</body>
+</html>
