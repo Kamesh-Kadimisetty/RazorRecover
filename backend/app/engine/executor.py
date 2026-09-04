@@ -20,7 +20,11 @@ class ActionExecutor:
 
     def _create_razorpay_payment_link(self, amount: float, customer: Customer, description: str) -> Dict[str, Any]:
         """Creates an official Razorpay Payment Link if live credentials exist."""
-        if self.mode == "razorpay" and self.key_id and self.key_secret:
+        mode = settings.MODE
+        key_id = settings.RAZORPAY_KEY_ID
+        key_secret = settings.RAZORPAY_KEY_SECRET
+
+        if mode == "razorpay" and key_id and key_secret:
             try:
                 url = "https://api.razorpay.com/v1/payment_links"
                 payload = {
@@ -33,10 +37,10 @@ class ActionExecutor:
                         "email": customer.email,
                         "contact": customer.phone
                     },
-                    "notify": {"sms": True, "email": True},
-                    "reminder_enable": True
+                    "notify": {"sms": False, "email": False},
+                    "reminder_enable": False
                 }
-                resp = requests.post(url, json=payload, auth=(self.key_id, self.key_secret), timeout=10)
+                resp = requests.post(url, json=payload, auth=(key_id, key_secret), timeout=10)
                 if resp.status_code in [200, 201]:
                     return resp.json()
             except Exception:

@@ -483,6 +483,17 @@
 
     async function loadDashboard() {
       try {
+        try {
+          const healthRes = await fetch('/health');
+          const health = await healthRes.json();
+          if (health.mode === 'razorpay') {
+            document.getElementById('mode-label').innerText = 'LIVE: RAZORPAY TEST MODE';
+            document.getElementById('mode-badge').className = 'flex items-center space-x-2 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+          } else {
+            document.getElementById('mode-label').innerText = 'DUAL-MODE: SIMULATOR';
+          }
+        } catch (e) {}
+
         const metricsRes = await fetch('/api/metrics/overview');
         const metrics = await metricsRes.json();
         
