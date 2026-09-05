@@ -218,3 +218,79 @@ def override_action(case_id: str, payload: OverrideActionIn, db: Session = Depen
     db.commit()
 
     return {"status": "overridden", "new_action": payload.new_action}
+
+class GenerateMessageIn(BaseModel):
+    tone: Optional[str] = "empathetic"
+
+@router.get("/{case_id}/ai-reasoning")
+def get_ai_agent_reasoning(case_id: str, db: Session = Depends(get_db)):
+    """Generates real-time Gemini AI Agent Chain-of-Thought (CoT) reasoning for this case."""
+    from backend.app.engine.explainer import explainer
+    case = db.query(RecoveryCase).filter(RecoveryCase.id == case_id).first()
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+
+    cust = case.customer
+    pay = case.payment
+
+    cust_dict = {
+        "name": cust.name if cust else "Customer",
+        "cohort": cust.cohort if cust else "reliable",
+        "lifetime_value": cust.lifetime_value if cust else 30000.0,
+        "historical_recovery_rate": cust.historical_recovery_rate if cust else 0.7
+    }
+    event_dict = {
+        "amount": case.amount_at_risk,
+        "failure_code": pay.error_code if pay else "INSUFFICIENT_FUNDS",
+        "root_cause": case.root_cause
+    }
+    candidates_eval = optimizer.evaluate_candidate_actions(cust_dict, event_dict)
+    
+    cot_markdown = explainer.generate_agent_reasoning(cust_dict, event_dict, candidates_eval)
+    return {
+        "case_id": case_id,
+        "agent_reasoning_markdown": cot_markdown,
+        "model_used": "Gemini 2.5 Flash"
+    }
+
+@router.post("/{case_id}/generate-message")
+def generate_tone_message(case_id: str, payload: GenerateMessageIn, db: Session = Depends(get_db)):
+    """Generates customer recovery message in selectable tone (Empathetic, Hinglish, Formal) using Gemini."""
+    from backend.app.engine.explainer import explainer
+    case = db.query(RecoveryCase).filter(RecoveryCase.id == case_id).first()
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+
+    cust = case.customer
+    cust_dict = {
+        "name": cust.name if cust else "Customer",
+        "cohort": cust.cohort if cust else "reliable",
+        "preferred_channel": cust.preferred_channel if cust else "whatsapp"
+    }
+    event_dict = {
+        "amount": case.amount_at_risk,
+        "order_id": case.id,
+        "root_cause": case.root_cause
+    }
+    candidates_eval = optimizer.evaluate_candidate_actions(cust_dict, event_dict)
+    
+    message = explainer.generate_customer_message(cust_dict, event_dict, candidates_eval, tone=payload.tone or "empathetic")
+    return {
+        "case_id": case_id,
+        "tone": payload.tone,
+        "message": message,
+        "model_used": "Gemini 2.5 Flash"
+    }
+
+@router.post("/wipe-demo-data")
+def wipe_demo_data(db: Session = Depends(get_db)):
+    """Cleans out seeded sample records so the dashboard displays ONLY real incoming live transactions."""
+    from backend.app.models.schemas import AuditLog, RecoveryAction, RecoveryCase, PaymentEvent, Customer
+    db.query(AuditLog).delete()
+    db.query(RecoveryAction).delete()
+    db.query(RecoveryCase).delete()
+    db.query(PaymentEvent).delete()
+    db.query(Customer).delete()
+    db.commit()
+    return {"status": "wiped_clean", "message": "Database cleared. Only real live transactions will appear."}
+

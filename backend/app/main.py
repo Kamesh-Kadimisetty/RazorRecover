@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 from backend.app.config import settings
 from backend.app.database import engine, Base, SessionLocal
 from backend.app.models.schemas import RecoveryCase
-from backend.app.api import webhooks, cases, metrics, simulator_api, evaluation_api, policies_api
+from backend.app.api import webhooks, cases, metrics, simulator_api, evaluation_api, policies_api, copilot_api, checkout_api
 from backend.app.api.simulator_api import seed_demo_data
 
 # Create tables
@@ -35,6 +35,8 @@ app.include_router(metrics.router)
 app.include_router(simulator_api.router)
 app.include_router(evaluation_api.router)
 app.include_router(policies_api.router)
+app.include_router(copilot_api.router)
+app.include_router(checkout_api.router)
 
 # Automatic initial seed if DB is empty
 @app.on_event("startup")
